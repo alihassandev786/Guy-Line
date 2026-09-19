@@ -252,6 +252,7 @@ class _SignupscreenState extends State<Signupscreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
+                      image: "",
                       color: const Color(0xFF1877F2),
                       iconData: Icons.facebook,
                       iconColor: Colors.white,
@@ -259,21 +260,22 @@ class _SignupscreenState extends State<Signupscreen> {
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
+                      image: "assets/images/twitter.png",
                       color: const Color(0xFF1DA1F2),
-                      iconData: Icons.flutter_dash,
                       iconColor: Colors.white,
                       onTap: () {},
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
                       color: Colors.white,
-                      isGoogle: true,
+                      image: "assets/images/google.png",
                       onTap: () {},
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
                       color: const Color(0xFF161616),
                       iconData: Icons.apple,
+                      image: "",
                       iconColor: Colors.white,
                       onTap: () {},
                     ),
@@ -324,7 +326,7 @@ class _SignupscreenState extends State<Signupscreen> {
     required Color color,
     IconData? iconData,
     Color iconColor = Colors.white,
-    bool isGoogle = false,
+    required String image,
     VoidCallback? onTap,
   }) {
     final double buttonSize = AppSize.widthPercent(0.12);
@@ -345,13 +347,13 @@ class _SignupscreenState extends State<Signupscreen> {
             ),
           ],
         ),
-        child: Center(
-          child: isGoogle
-              ? CustomPaint(
-                  size: Size(buttonSize * 0.45, buttonSize * 0.45),
-                  painter: _GoogleLogoPainter(),
-                )
-              : Icon(iconData, color: iconColor, size: buttonSize * 0.55),
+        child: Padding(
+          padding:  EdgeInsets.all(AppSize.height*0.014),
+          child: Center(
+            child: image.isNotEmpty
+                ? Image.asset(image)
+                : Icon(iconData, color: iconColor, size: buttonSize * 0.55),
+          ),
         ),
       ),
     );

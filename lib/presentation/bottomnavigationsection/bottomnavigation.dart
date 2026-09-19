@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:guyline/core/theme/appcolors.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
 import 'package:guyline/presentation/bottomnavigationsection/homesection/homescreen.dart';
 import 'package:guyline/presentation/bottomnavigationsection/historysection/historyscreen.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/profilescreen.dart';
+
+import '../../data/controllers/historycontroller.dart';
 
 class Bottomnavigation extends StatefulWidget {
   const Bottomnavigation({super.key});
@@ -23,10 +27,19 @@ class _BottomnavigationState extends State<Bottomnavigation> {
   ];
 
   void _onItemTapped(int index) {
-    if (_selectedIndex == index) return; // agar wahi tab dobara tap ho to kuch na ho
+    if (_selectedIndex == index) return;
     setState(() {
       _selectedIndex = index;
     });
+
+    // History tab open hone pe data refresh karo
+    if (index == 1) {
+      if (Get.isRegistered<HistoryController>()) {
+        Get.find<HistoryController>().refresh();
+      } else {
+        Get.put(HistoryController()); // pehli dafa
+      }
+    }
   }
 
   @override

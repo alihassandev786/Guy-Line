@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:guyline/presentation/Widgets/snackbar.dart';
 import '../services/authservice.dart';
 import '../services/passwordresetsession.dart';
 
@@ -17,24 +18,12 @@ class VerifyController extends GetxController {
     final String enteredOtp = otpController.text.trim();
 
     if (enteredOtp.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Please enter the verification code",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      SnackbarService.error("Please enter the verification code");
       return false;
     }
 
     if (enteredOtp.length != 6) {
-      Get.snackbar(
-        "Error",
-        "Please enter the complete 6-digit code",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      SnackbarService.error("Please enter the complete 6-digit code");
       return false;
     }
 
@@ -54,13 +43,7 @@ class VerifyController extends GetxController {
     final String? email = PasswordResetSession.email;
 
     if (email == null || email.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Session expired. Please restart the forgot password process.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      SnackbarService.error("Session expired. Please restart the forgot password process.");
       return;
     }
 
@@ -81,39 +64,21 @@ class VerifyController extends GetxController {
       if (result.success) {
         print("✅ [VerifyController] Code resent successfully");
 
-        Get.snackbar(
-          "Success",
-          result.message.isNotEmpty
-              ? result.message
-              : "A new code has been sent to your email",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+        SnackbarService.success(result.message.isNotEmpty
+            ? result.message
+            : "A new code has been sent to your email",);
       } else {
         print(
           "❌ [VerifyController] Resend failed: ${result.message}",
         );
 
-        Get.snackbar(
-          "Error",
-          result.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-        );
+        SnackbarService.error(result.message);
       }
     } catch (e, stackTrace) {
       print("❌ [VerifyController] Resend exception: $e");
       print(stackTrace);
 
-      Get.snackbar(
-        "Error",
-        "Unable to resend code. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+     SnackbarService.error("Unable to resend code. Please try again.");
     } finally {
       isLoading.value = false;
     }

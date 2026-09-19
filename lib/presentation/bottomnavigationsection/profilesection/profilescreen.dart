@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/theme/appcolors.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
@@ -14,40 +16,34 @@ class Profilescreen extends StatefulWidget {
 }
 
 class _ProfilescreenState extends State<Profilescreen> {
-  final controller = Get.isRegistered<ProfileController>()
+  final ProfileController controller = Get.isRegistered<ProfileController>()
       ? Get.find<ProfileController>()
-      : Get.put(ProfileController());
+      : Get.put(ProfileController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
     final double horizontalPadding = AppSize.widthPercent(0.055);
-    final double bannerHeight = AppSize.heightPercent(0.24);
-    final double avatarSize = AppSize.widthPercent(0.26);
+    final double bannerHeight = AppSize.heightPercent(0.22);
+    final double avatarSize = AppSize.widthPercent(0.28);
 
-    return AppBackground(
-      padding: EdgeInsets.zero,
-      child: SafeArea(
-        bottom: false,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+      child: AppBackground(
+        padding: EdgeInsets.zero,
         child: SingleChildScrollView(
-          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// ---------------------------------------------------------
-              /// 1. SIMPLE ROUNDED BANNER WITH BOTTOM-LEFT FLOATING AVATAR
-              /// ---------------------------------------------------------
               _ProfileHeader(
                 controller: controller,
                 bannerHeight: bannerHeight,
                 avatarSize: avatarSize,
                 horizontalPadding: horizontalPadding,
               ),
-
-              SizedBox(height: avatarSize * 0.35),
-
-              /// ---------------------------------------------------------
-              /// 2. NAME, EMAIL & EDIT PROFILE BUTTON
-              /// ---------------------------------------------------------
+              SizedBox(height: avatarSize * 0.55),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Obx(
@@ -55,16 +51,14 @@ class _ProfilescreenState extends State<Profilescreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        controller.name.value,
+                        controller.name.value.isEmpty ? "User" : controller.name.value,
                         style: TextStyle(
                           color: AppColors.textcolor1,
                           fontFamily: "pb",
                           fontSize: AppSize.widthPercent(0.055),
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.2,
                         ),
                       ),
-                      SizedBox(height: AppSize.heightPercent(0.005)),
                       Text(
                         controller.email.value,
                         style: TextStyle(
@@ -73,64 +67,29 @@ class _ProfilescreenState extends State<Profilescreen> {
                           fontSize: AppSize.widthPercent(0.033),
                         ),
                       ),
-                      SizedBox(height: AppSize.heightPercent(0.018)),
                     ],
                   ),
                 ),
               ),
-
-              SizedBox(height: AppSize.heightPercent(0.025)),
+              SizedBox(height: AppSize.heightPercent(0.022)),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   children: [
-                    _ProfileMenuTile(
-                      icon: Icons.person_rounded,
-                      title: "Account Settings",
-                      onTap: controller.goToAccountSettings,
-                    ),
+                    _ProfileMenuTile(icon: Icons.person_rounded, title: "Account Settings", onTap: controller.goToAccountSettings),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.notifications_rounded,
-                      title: "Notifications",
-                      onTap: controller.goToNotifications,
-                    ),
+                    _ProfileMenuTile(icon: Icons.notifications_rounded, title: "Notifications", onTap: controller.goToNotifications),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.shield_rounded,
-                      title: "Privacy & Security",
-                      onTap: controller.goToPrivacyAndSecurity,
-                    ),
+                    _ProfileMenuTile(icon: Icons.shield_rounded, title: "Interaction Preference", onTap: controller.goTointrectionprefrence),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.laptop_chromebook_rounded,
-                      title: "Subscription",
-                      onTap: controller.goToSubscription,
-                    ),
+                    _ProfileMenuTile(icon: Icons.laptop_chromebook_rounded, title: "Subscription", onTap: controller.goToSubscription),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.info_rounded,
-                      title: "About Guy Line",
-                      onTap: controller.goToAbout,
-                    ),
+                    _ProfileMenuTile(icon: Icons.info_rounded, title: "About Guy Line", onTap: controller.goToAbout),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.help_rounded,
-                      title: "Support Center",
-                      onTap: controller.goToSupportCenter,
-                    ),
+                    _ProfileMenuTile(icon: Icons.help_rounded, title: "Support Center", onTap: controller.goToSupportCenter),
                     SizedBox(height: AppSize.heightPercent(0.01)),
-                    _ProfileMenuTile(
-                      icon: Icons.star_rounded,
-                      title: "Rate App",
-                      onTap: controller.rateApp,
-                    ),
-
+                    _ProfileMenuTile(icon: Icons.star_rounded, title: "Rate App", onTap: controller.rateApp),
                     SizedBox(height: AppSize.heightPercent(0.03)),
-
-                    /// -----------------------------------------------------
-                    /// 5. LOGOUT BUTTON (TRIGGERS CUSTOM ALERT DIALOG)
-                    /// -----------------------------------------------------
                     GestureDetector(
                       onTap: () => controller.logout(context),
                       child: Container(
@@ -144,37 +103,23 @@ class _ProfilescreenState extends State<Profilescreen> {
                             end: Alignment.centerRight,
                           ),
                           borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFB30000).withOpacity(0.35),
-                              blurRadius: 14,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.logout_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
+                            const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
                             SizedBox(width: AppSize.widthPercent(0.02)),
-                            Text(
-                              "Logout",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: "pb",
-                                fontSize: AppSize.widthPercent(0.042),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            Text("Logout",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "pb",
+                                  fontSize: AppSize.widthPercent(0.042),
+                                  fontWeight: FontWeight.w600,
+                                )),
                           ],
                         ),
                       ),
                     ),
-
                     SizedBox(height: AppSize.heightPercent(0.03)),
                   ],
                 ),
@@ -187,9 +132,6 @@ class _ProfilescreenState extends State<Profilescreen> {
   }
 }
 
-/// -----------------------------------------------------------------------
-/// SIMPLE BANNER (rounded bottom corners) + BOTTOM-LEFT FLOATING AVATAR
-/// -----------------------------------------------------------------------
 class _ProfileHeader extends StatelessWidget {
   final ProfileController controller;
   final double bannerHeight;
@@ -210,100 +152,51 @@ class _ProfileHeader extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          /// Simple rounded banner box
+          // ========== BANNER (ab image bhi dikhayega) ==========
           ClipRRect(
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(AppSize.widthPercent(0.09)),
               bottomRight: Radius.circular(AppSize.widthPercent(0.09)),
             ),
             child: SizedBox(
-              height: bannerHeight,
+              height: bannerHeight + (avatarSize * 0.5),
               width: double.infinity,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Obx(() {
-                    final bannerPath = controller.selectedBannerPath.value;
-                    if (bannerPath != null && bannerPath.isNotEmpty) {
-                      return Image.file(
-                        File(bannerPath),
-                        fit: BoxFit.cover,
-                      );
-                    }
-                    return Image.asset(
-                      controller.defaultBannerImage,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primary1.withOpacity(0.55),
-                              AppColors.primary2.withOpacity(0.55),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.55),
-                          Colors.black.withOpacity(0.0),
-                        ],
-                        stops: const [0.0, 0.6],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: Obx(() {
+                final version = controller.avatarVersion.value;
+                return KeyedSubtree(
+                  key: ValueKey('banner_$version'),
+                  child: _buildBanner(),
+                );
+              }),
             ),
           ),
 
-          /// Floating avatar — bottom-left of the banner, with left padding
+          // ========== FLOATING AVATAR ==========
           Positioned(
-            top: bannerHeight - (avatarSize * 0.5),
-            left:AppSize.height*0.04,
+            top: bannerHeight - (avatarSize * 0.15),
+            left: horizontalPadding,
             child: Container(
               height: avatarSize,
               width: avatarSize,
-              padding: const EdgeInsets.all(4),
+              padding: const EdgeInsets.all(3.5),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary2,
+                color: const Color(0xFF1B1B1B),
+                border: Border.all(color: AppColors.primary1.withOpacity(0.5), width: 2.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 12,
+                    color: Colors.black.withOpacity(0.45),
+                    blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: ClipOval(
                 child: Obx(() {
-                  final avatarPath = controller.selectedAvatarPath.value;
-                  if (avatarPath != null && avatarPath.isNotEmpty) {
-                    return Image.file(
-                      File(avatarPath),
-                      fit: BoxFit.cover,
-                    );
-                  }
-                  return Image.asset(
-                    controller.defaultAvatarImage,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: AppColors.primary1.withOpacity(0.3),
-                      child: Icon(
-                        Icons.person,
-                        color: AppColors.primary1,
-                        size: avatarSize * 0.5,
-                      ),
-                    ),
+                  final version = controller.avatarVersion.value;
+                  return KeyedSubtree(
+                    key: ValueKey('avatar_$version'),
+                    child: _buildAvatarImage(),
                   );
                 }),
               ),
@@ -313,32 +206,96 @@ class _ProfileHeader extends StatelessWidget {
       ),
     );
   }
+  Widget _buildBanner() {
+    final provider = controller.avatarImageProvider;
+    if (provider != null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Image(
+            image: provider,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) {
+              print("🔴 Banner image failed to load");
+              return _defaultBanner();
+            },
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.45),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return _defaultBanner();
+  }
+
+  Widget _defaultBanner() {
+    return Container(
+      color: AppColors.primary2.withOpacity(0.12),
+      child: Center(
+        child: Icon(
+          Icons.person_outline_rounded,
+          size: AppSize.widthPercent(0.28),
+          color: AppColors.primary1.withOpacity(0.35),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarImage() {
+    final provider = controller.avatarImageProvider;
+    if (provider != null) {
+      return Image(
+        image: provider,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) {
+          print("🔴 Avatar image failed to load");
+          return _defaultAvatar();
+        },
+      );
+    }
+    return _defaultAvatar();
+  }
+  Widget _defaultAvatar() {
+    return Container(
+      color: const Color(0xFF1B1B1B),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.person_rounded,
+        size: avatarSize * 0.5,
+        color: AppColors.primary1.withOpacity(0.85),
+      ),
+    );
+  }
 }
 
-/// -----------------------------------------------------------------------
-/// REUSABLE MENU TILE
-/// -----------------------------------------------------------------------
 class _ProfileMenuTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
 
-  const _ProfileMenuTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
+  const _ProfileMenuTile({required this.icon, required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
         width: double.infinity,
         height: AppSize.heightPercent(0.074),
         padding: EdgeInsets.symmetric(horizontal: AppSize.widthPercent(0.04)),
         decoration: BoxDecoration(
-          color: const Color(0xFF1B1B1B),
+          color: AppColors.primary2.withOpacity(0.1),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
         ),
@@ -351,16 +308,14 @@ class _ProfileMenuTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.primary1.withOpacity(0.18),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary1,
-                size: AppSize.widthPercent(0.05),
-              ),
+              child: Icon(icon, color: AppColors.primary1, size: AppSize.widthPercent(0.05)),
             ),
             SizedBox(width: AppSize.widthPercent(0.035)),
             Expanded(
               child: Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: AppColors.textcolor1,
                   fontFamily: "pm",
@@ -369,11 +324,7 @@ class _ProfileMenuTile extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: AppColors.primary1,
-              size: AppSize.widthPercent(0.04),
-            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: AppColors.primary1, size: AppSize.widthPercent(0.04)),
           ],
         ),
       ),

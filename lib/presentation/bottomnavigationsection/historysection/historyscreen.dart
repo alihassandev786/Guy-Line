@@ -4,6 +4,7 @@ import 'package:guyline/core/theme/appcolors.dart';
 import 'package:guyline/presentation/Widgets/CustomHeader.dart';
 import 'package:guyline/presentation/Widgets/iconcircle.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
+import 'package:guyline/data/services/historyservice.dart';
 
 import '../../../data/controllers/historycontroller.dart';
 import '../../Widgets/appbackground.dart';
@@ -27,174 +28,298 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return AppBackground(
       padding: EdgeInsets.zero,
       child: SafeArea(
-        child: SingleChildScrollView(
-          
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomHeader(
-                  title: "History",
-                  subtitle: "Explore your history",
-                  rightWidget: IconCircle(
-                    icon: Icons.search,
-                    iconColor: AppColors.textcolor1,
-                    backgroundColor: AppColors.primary1,
+        child: RefreshIndicator(
+          color: AppColors.primary1,
+          onRefresh: controller.refresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomHeader(
+                    title: "History",
+                    subtitle: "Explore your history",
+                    rightWidget: GestureDetector(
+                      onTap: controller.onSearchTap,
+                      child: IconCircle(
+                        icon: Icons.search,
+                        iconColor: AppColors.textcolor1,
+                        backgroundColor: AppColors.primary1,
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: AppSize.heightPercent(0.025)),
+                  SizedBox(height: AppSize.heightPercent(0.025)),
 
-                /// 2. HISTORY SECTIONS LIST
-                Obx(
-                  () => ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: controller.historySections.length,
-                    itemBuilder: (context, sectionIndex) {
-                      final section = controller.historySections[sectionIndex];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (section.sectionTitle != null) ...[
-                            SizedBox(height: AppSize.heightPercent(0.025)),
-                            Text(
-                              section.sectionTitle!,
-                              style: TextStyle(
-                                color: AppColors.textcolor1,
-                                fontFamily: "pb",
-                                fontSize: AppSize.widthPercent(0.045),
-                                fontWeight: FontWeight.bold,
+                  Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(40),
+                          child: CircularProgressIndicator(
+                              color: AppColors.primary1),
+                        ),
+                      );
+                    }
+
+                    if (controller.errorMessage.value.isNotEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Text(
+                                controller.errorMessage.value,
+                                style: TextStyle(color: AppColors.textcolor2),
                               ),
-                            ),
-                            SizedBox(height: AppSize.heightPercent(0.015)),
-                          ],
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: section.items.length,
-                            separatorBuilder: (context, index) =>
-                                SizedBox(height: AppSize.heightPercent(0.012)),
-                            itemBuilder: (context, itemIndex) {
-                              final item = section.items[itemIndex];
-                              return GestureDetector(
-                                onTap: () => controller.onItemTap(item),
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.all(
-                                    AppSize.widthPercent(0.05),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary2.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.title,
-                                              style: TextStyle(
-                                                color: AppColors.textcolor1,
-                                                fontFamily: "pb",
-                                                fontSize: AppSize.widthPercent(
-                                                  0.04,
-                                                ),
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            color: AppColors.primary1,
-                                            size: AppSize.widthPercent(0.04),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: AppSize.heightPercent(0.005),
-                                      ),
-                                      Text(
-                                        item.description,
-                                        style: TextStyle(
-                                          color: AppColors.textcolor1,
-                                          fontFamily: "pr",
-                                          fontSize: AppSize.widthPercent(0.032),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(
-                                        height: AppSize.heightPercent(0.015),
-                                      ),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: AppSize.widthPercent(
-                                                0.035,
-                                              ),
-                                              vertical: AppSize.heightPercent(
-                                                0.008,
-                                              ),
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.textcolor1.withOpacity(
-                                                0.1,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Text(
-                                              item.tag,
-                                              style: TextStyle(
-                                                color: AppColors.textcolor1
-                                                    .withOpacity(0.8),
-                                                fontFamily: "pr",
-                                                fontSize: AppSize.widthPercent(
-                                                  0.028,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          if (item.timeAgo.isNotEmpty) ...[
-                                            SizedBox(
-                                              width: AppSize.widthPercent(0.03),
-                                            ),
-                                            Text(
-                                              item.timeAgo,
-                                              style: TextStyle(
-                                                color: AppColors.textcolor2,
-                                                fontFamily: "pr",
-                                                fontSize: AppSize.widthPercent(
-                                                  0.028,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ],
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: controller.refresh,
+                                child: const Text("Retry"),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Search mode → flat filtered list
+                    if (controller.searchQuery.value.isNotEmpty) {
+                      if (controller.filteredConversations.isEmpty) {
+                        return _emptyState("No results found");
+                      }
+                      return _buildFlatList(
+                          controller.filteredConversations, controller);
+                    }
+
+                    // Normal mode → grouped sections
+                    final groups = controller.groups;
+                    final hasAny = groups.values.any((list) => list.isNotEmpty) ||
+                        controller.conversations.isNotEmpty;
+
+                    if (!hasAny) {
+                      return _emptyState("No conversations yet");
+                    }
+
+                    // If groups are empty but conversations exist (flat fallback)
+                    if (groups.isEmpty ||
+                        groups.values.every((l) => l.isEmpty)) {
+                      return _buildFlatList(
+                          controller.conversations, controller);
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final entry in groups.entries)
+                          if (entry.value.isNotEmpty) ...[
+                            if (entry.key != "Today")
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: AppSize.heightPercent(0.02),
+                                  bottom: AppSize.heightPercent(0.015),
+                                ),
+                                child: Text(
+                                  entry.key,
+                                  style: TextStyle(
+                                    color: AppColors.textcolor1,
+                                    fontFamily: "pb",
+                                    fontSize: AppSize.widthPercent(0.042),
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                SizedBox(height: AppSize.heightPercent(0.03)),
-              ],
+                              )
+                            else
+                              SizedBox(height: AppSize.heightPercent(0.005)),
+                            ...entry.value.map(
+                                  (item) => Padding(
+                                padding: EdgeInsets.only(
+                                    bottom: AppSize.heightPercent(0.012)),
+                                child: _HistoryTile(
+                                  item: item,
+                                  onTap: () => controller.onItemTap(item),
+                                ),
+                              ),
+                            ),
+                          ],
+                      ],
+                    );
+                  }),
+                  SizedBox(height: AppSize.heightPercent(0.03)),
+                ],
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyState(String text) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.only(top: AppSize.heightPercent(0.15)),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: AppColors.textcolor2,
+            fontFamily: "pr",
+            fontSize: AppSize.widthPercent(0.04),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlatList(
+      List<HistoryConversation> list, HistoryController controller) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: list.length,
+      separatorBuilder: (_, __) =>
+          SizedBox(height: AppSize.heightPercent(0.012)),
+      itemBuilder: (context, index) {
+        final item = list[index];
+        return _HistoryTile(
+          item: item,
+          onTap: () => controller.onItemTap(item),
+        );
+      },
+    );
+  }
+}
+
+/// Single history card — overflow safe
+class _HistoryTile extends StatelessWidget {
+  final HistoryConversation item;
+  final VoidCallback onTap;
+
+  const _HistoryTile({required this.item, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = item.title?.isNotEmpty == true
+        ? item.title!
+        : (item.category ?? "Conversation");
+    final subtitle = item.lastMessage ?? "";
+    final category = item.category;
+    final time = item.timeAgo ?? "";
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSize.widthPercent(0.04),
+          vertical: AppSize.heightPercent(0.018),
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primary2.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.06),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Left content — takes remaining space
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppColors.textcolor1,
+                            fontFamily: "pb",
+                            fontSize: AppSize.widthPercent(0.04),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: AppSize.widthPercent(0.02)),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.primary1,
+                        size: AppSize.widthPercent(0.06),
+                      ),
+                    ],
+                  ),
+
+                  // Subtitle (last message)
+                  if (subtitle.isNotEmpty) ...[
+                    SizedBox(height: AppSize.heightPercent(0.006)),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textcolor2.withOpacity(0.85),
+                        fontFamily: "pr",
+                        fontSize: AppSize.widthPercent(0.032),
+                      ),
+                    ),
+                  ],
+
+                  SizedBox(height: AppSize.heightPercent(0.012)),
+
+                  // Category chip + time — also overflow safe
+                  Row(
+                    children: [
+                      if (category != null && category.isNotEmpty)
+                        Flexible(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSize.widthPercent(0.03),
+                              vertical: AppSize.heightPercent(0.005),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              category,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: AppColors.textcolor1.withOpacity(0.85),
+                                fontFamily: "pr",
+                                fontSize: AppSize.widthPercent(0.028),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (category != null &&
+                          category.isNotEmpty &&
+                          time.isNotEmpty)
+                        SizedBox(width: AppSize.widthPercent(0.025)),
+                      if (time.isNotEmpty)
+                        Text(
+                          time,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppColors.textcolor2.withOpacity(0.7),
+                            fontFamily: "pr",
+                            fontSize: AppSize.widthPercent(0.028),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

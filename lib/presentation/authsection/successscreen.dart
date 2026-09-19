@@ -120,18 +120,19 @@ class _SuccessscreenState extends State<Successscreen> {
                             height: AppSize.heightPercent(0.06),
                           ),
 
-                          /// 5. LOGIN NOW BUTTON
                           CustomButton(
                             title: "Login Now",
-                            onTap: () {
-                              // Keyboard agar open ho to pehle close karo
+                            onTap: () async {
+                              // 1. Keyboard band karo
                               FocusManager.instance.primaryFocus?.unfocus();
 
-                              // Password reset flow ki purani screens remove
+                              // 2. Thoda wait (yeh race condition khatam karta hai)
+                              await Future.delayed(const Duration(milliseconds: 300));
+
+                              // 3. Ab navigate
                               Get.offAllNamed(AppRoutes.login);
                             },
                           ),
-
                           SizedBox(
                             height: AppSize.heightPercent(0.03),
                           ),

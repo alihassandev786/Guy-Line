@@ -13,11 +13,13 @@ class CustomHeader extends StatelessWidget {
   final Widget? rightWidget;
   final Color? backgroundColor;
   final double? titleSize;
+  final ImageProvider? imageProvider;
   final double? subtitleSize;
   final EdgeInsets? padding;
 
   const CustomHeader({
     super.key,
+    this.imageProvider,
     required this.title,
     this.subtitle,
     this.showBackButton = false,
@@ -59,9 +61,12 @@ class CustomHeader extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 10),
               child: CircleAvatar(
-                radius: 22,
-                backgroundImage: AssetImage(profileImage!),
-              ),
+                backgroundColor: AppColors.primary1.withOpacity(0.15),
+                backgroundImage: imageProvider,
+                child: imageProvider == null
+                    ? Icon(Icons.person_rounded, color: AppColors.primary1)
+                    : null,
+              )
             ),
 
           /// TITLE AREA

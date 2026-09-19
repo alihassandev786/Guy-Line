@@ -105,12 +105,8 @@ class _SettingsTile extends StatelessWidget {
         height: AppSize.heightPercent(0.08),
         padding: EdgeInsets.symmetric(horizontal: AppSize.widthPercent(0.045)),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: AppColors.primary2.withOpacity(0.1),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.08),
-            width: 1,
-          ),
         ),
         child: Row(
           children: [

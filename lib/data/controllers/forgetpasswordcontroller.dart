@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:guyline/data/services/passwordresetsession.dart';
+import 'package:guyline/presentation/Widgets/snackbar.dart';
 import '../../core/routes/approutes.dart';
 import '../../presentation/Widgets/AppNavigator.dart';
 import '../services/authservice.dart';
@@ -28,20 +29,12 @@ class ForgetPasswordController extends GetxController {
 
     // Validation
     if (email.isEmpty) {
-      _showSnackbar(
-        "Error",
-        "Please enter your email address",
-        isError: true,
-      );
+      SnackbarService.error("Please enter your email adress");
       return;
     }
 
     if (!GetUtils.isEmail(email)) {
-      _showSnackbar(
-        "Error",
-        "Please enter a valid email address",
-        isError: true,
-      );
+      SnackbarService.error("Please enter a valid email address");
       return;
     }
 
@@ -53,9 +46,7 @@ class ForgetPasswordController extends GetxController {
     try {
       print("🟡 [ForgetPasswordController] Sending code to: $email");
 
-      final result = await _authService.forgotPassword(
-        email: email,
-      );
+      final result = await _authService.forgotPassword(email: email);
 
       print("🟡 [ForgetPasswordController] API completed");
       print("🟡 Success: ${result.success}");
@@ -70,58 +61,33 @@ class ForgetPasswordController extends GetxController {
         // Very important
         PasswordResetSession.email = email;
 
-        print(
-          "✅ [ForgetPasswordController] Code sent successfully to: $email",
-        );
+        print("✅ [ForgetPasswordController] Code sent successfully to: $email");
 
-        _showSnackbar(
-          "Success",
-          result.message,
-          isError: false,
-        );
+        SnackbarService.success(result.message);
 
         // Navigate ONLY after successful API response
         AppNavigator.pushRight(AppRoutes.verify);
       } else {
-        print(
-          "❌ [ForgetPasswordController] Failed: ${result.message}",
-        );
+        print("❌ [ForgetPasswordController] Failed: ${result.message}");
 
-        _showSnackbar(
-          "Error",
-          result.message,
-          isError: true,
-        );
+        SnackbarService.error(result.message);
       }
     } catch (e, stackTrace) {
       print("❌ [ForgetPasswordController] Exception: $e");
       print("❌ StackTrace: $stackTrace");
 
-      _showSnackbar(
-        "Error",
-        "Something went wrong. Please try again.",
-        isError: true,
-      );
+      SnackbarService.error("Something went wrong. Please try again.");
     } finally {
       isLoading.value = false;
     }
   }
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isError ? Colors.redAccent : Colors.green,
-      colorText: Colors.white,
-    );
-  }
 
   @override
   void onClose() {
-    emailController.dispose();
     super.onClose();
   }
 }
+
 class ForgetPasswordBinding extends Bindings {
   @override
   void dependencies() {

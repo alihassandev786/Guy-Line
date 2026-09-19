@@ -4,10 +4,7 @@ import 'package:guyline/core/network/apiendpoints.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-
-
   // signup method
-
   Future<AuthResult> register({
     required String username,
     required String email,
@@ -36,12 +33,10 @@ class AuthService {
         body: jsonEncode(body),
       )
           .timeout(const Duration(seconds: 20));
-
       print("🟢 [AuthService] Status Code: ${response.statusCode}");
       print("🟢 [AuthService] Response Body: ${response.body}");
 
       final Map<String, dynamic> decoded = jsonDecode(response.body);
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         return AuthResult(
           success: true,
@@ -550,7 +545,7 @@ class UserModel {
       id: json["id"] ?? 0,
       username: json["username"] ?? "",
       email: json["email"] ?? "",
-      profileImage: json["profile_image"],
+      profileImage: _normalizeImageUrl(json["profile_image"]),
       interests: json["interests"] != null
           ? List<String>.from(json["interests"])
           : null,
@@ -558,7 +553,58 @@ class UserModel {
       onboardingCompleted: json["onboarding_completed"],
     );
   }
+  static String? _normalizeImageUrl(String? path) {
+    if (path == null || path.trim().isEmpty) return null;
 
+    final trimmed = path.trim();
+
+
+    // Agar already complete URL hai
+    if (trimmed.startsWith("http://") ||
+        trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+
+
+    // Agar base64 image hai
+    if (trimmed.startsWith("data:image")) {
+      return trimmed;
+    }
+
+
+    const String baseUrl = "https://guyline.digitalpreps.com";
+
+
+    // Login API:
+    // profile_images/16_xxx.jpeg
+    if (trimmed.startsWith("profile_images/")) {
+      return "$baseUrl/storage/$trimmed";
+    }
+
+
+    // Agar backend:
+    // /profile_images/16_xxx.jpeg bheje
+    if (trimmed.startsWith("/profile_images/")) {
+      return "$baseUrl/storage$trimmed";
+    }
+
+
+    // Agar backend:
+    // storage/profile_images/16_xxx.jpeg bheje
+    if (trimmed.startsWith("storage/")) {
+      return "$baseUrl/$trimmed";
+    }
+
+
+    // Agar backend:
+    // /storage/profile_images/16_xxx.jpeg bheje
+    if (trimmed.startsWith("/storage/")) {
+      return "$baseUrl$trimmed";
+    }
+
+
+    return "$baseUrl/storage/$trimmed";
+  }
   Map<String, dynamic> toJson() {
     return {
       "id": id,
@@ -569,5 +615,24 @@ class UserModel {
       "thinking_style": thinkingStyle,
       "onboarding_completed": onboardingCompleted,
     };
+  }
+  UserModel copyWith({
+    int? id,
+    String? username,
+    String? email,
+    String? profileImage,
+    List<String>? interests,
+    String? thinkingStyle,
+    bool? onboardingCompleted,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      profileImage: profileImage ?? this.profileImage,
+      interests: interests ?? this.interests,
+      thinkingStyle: thinkingStyle ?? this.thinkingStyle,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+    );
   }
 }

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/routes/approutes.dart';
 
+import 'data/controllers/profilecontroller.dart';
 import 'data/services/sessionmanager.dart';
 
 Future<void> main() async {
   await SessionManager.init(); // 👈 add this before runApp
+  Get.put<ProfileController>(ProfileController(), permanent: true);
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:guyline/core/routes/approutes.dart';
 import 'package:guyline/core/theme/appcolors.dart';
-import 'package:guyline/presentation/Widgets/Button.dart';
+import 'package:guyline/presentation/Widgets/AppNavigator.dart';
 import 'package:guyline/presentation/Widgets/CustomHeader.dart';
 import 'package:guyline/presentation/Widgets/iconcircle.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
 
 import '../../../data/controllers/homecontroller.dart';
+import '../../../data/controllers/profilecontroller.dart';
 import '../../Widgets/appbackground.dart';
 
 class Homescreen extends StatefulWidget {
@@ -20,27 +22,40 @@ class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(HomeController());
+    final ProfileController profileController =
+        Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController());
     final double horizontalPadding = AppSize.widthPercent(0.05);
 
     return AppBackground(
       padding: EdgeInsets.zero,
       child: SafeArea(
         child: SingleChildScrollView(
-          
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomHeader(
-                  title: "Hey,Alex!",
-                  subtitle: "What's on your mind?",
-                  rightWidget: IconCircle(icon: Icons.notifications,backgroundColor: AppColors.primary1,iconColor: AppColors.textcolor1,),
-                  profileImage: "assets/images/profile.png",
-                ),
+                Obx(() {
+                  final _ = profileController.avatarVersion.value;
+                  return CustomHeader(
+                    title: "Hey, ${profileController.name.value}!",
+                    subtitle: "What's on your mind?",
+                    rightWidget: GestureDetector(
+                      onTap: () => AppNavigator.pushRight(AppRoutes.notification),
+                      child: IconCircle(
+                        icon: Icons.notifications,
+                        backgroundColor: AppColors.primary1,
+                        iconColor: AppColors.textcolor1,
+                      ),
+                    ),
+                    profileImage: "assets/images/profile.jpg",
+                    imageProvider: profileController.avatarImageProvider,
+                  );
+                }),
                 SizedBox(height: AppSize.heightPercent(0.03)),
 
-                // / 2. START TALKING VOICE BUTTON
                 GestureDetector(
                   onTap: controller.startTalking,
                   child: Container(
@@ -91,7 +106,6 @@ class _HomescreenState extends State<Homescreen> {
 
                 SizedBox(height: AppSize.heightPercent(0.03)),
 
-                /// 3. CATEGORIES GRID SECTION
                 Obx(
                   () => GridView.builder(
                     shrinkWrap: true,
@@ -109,7 +123,7 @@ class _HomescreenState extends State<Homescreen> {
                         onTap: () => controller.onCategoryTap(item.title),
                         child: Container(
                           decoration: BoxDecoration(
-                            color:AppColors.primary2.withOpacity(0.1),
+                            color: AppColors.primary2.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -140,7 +154,6 @@ class _HomescreenState extends State<Homescreen> {
 
                 SizedBox(height: AppSize.heightPercent(0.04)),
 
-                /// 4. CONTINUE WHERE YOU LEFT OFF SECTION
                 Text(
                   "Continue Where You Left Off",
                   style: TextStyle(
@@ -153,9 +166,42 @@ class _HomescreenState extends State<Homescreen> {
 
                 SizedBox(height: AppSize.heightPercent(0.018)),
 
-                /// 5. RECENT HISTORY LIST
-                Obx(
-                  () => ListView.separated(
+                Obx(() {
+                  if (controller.isLoadingRecent.value) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppSize.heightPercent(0.02),
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary1,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (controller.recentItems.isEmpty) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppSize.heightPercent(0.02),
+                      ),
+                      child: Text(
+                        "No recent chats yet. Start a conversation!",
+                        style: TextStyle(
+                          color: AppColors.textcolor2,
+                          fontFamily: "pr",
+                          fontSize: AppSize.widthPercent(0.033),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: controller.recentItems.length,
@@ -172,7 +218,7 @@ class _HomescreenState extends State<Homescreen> {
                             vertical: AppSize.heightPercent(0.018),
                           ),
                           decoration: BoxDecoration(
-                            color:AppColors.primary2.withOpacity(0.1),
+                            color: AppColors.primary2.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.05),
@@ -187,6 +233,8 @@ class _HomescreenState extends State<Homescreen> {
                                   children: [
                                     Text(
                                       item.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: AppColors.textcolor1,
                                         fontFamily: "pb",
@@ -199,6 +247,8 @@ class _HomescreenState extends State<Homescreen> {
                                     ),
                                     Text(
                                       item.subtitle,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         color: AppColors.textcolor1.withOpacity(
                                           0.5,
@@ -220,9 +270,8 @@ class _HomescreenState extends State<Homescreen> {
                         ),
                       );
                     },
-                  ),
-                ),
-
+                  );
+                }),
                 SizedBox(height: AppSize.heightPercent(0.03)),
               ],
             ),

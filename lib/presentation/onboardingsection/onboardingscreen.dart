@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:guyline/core/theme/appcolors.dart';
 import 'package:guyline/presentation/widgets/CustomTile.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
@@ -9,6 +10,7 @@ import '../../data/services/sessionmanager.dart';
 import '../Widgets/AppNavigator.dart';
 import '../Widgets/Button.dart';
 import '../Widgets/appbackground.dart';
+import '../Widgets/snackbar.dart';
 
 class Onboardingscreen extends StatefulWidget {
   const Onboardingscreen({super.key});
@@ -33,10 +35,23 @@ class _OnboardingscreenState extends State<Onboardingscreen> {
     "listen",
     "straightforward",
     "challenge",
-    "decisions",
+    "decide",
   ];
 
   Future<void> _onNext() async {
+    // Page 0 = intro (koi selection nahi) → freely next
+    // Page 1 = interests → kam se kam 1 select zaroori
+    if (_currentPage == 1 && _selectedInterests.isEmpty) {
+      SnackbarService.error("Please select at least one interest");
+      return;
+    }
+    // Page 2 = thinking style (default 0 selected hai, lekin safety)
+    if (_currentPage == 2 && _selectedThinkingStyle < 0) {
+      SnackbarService.error("Please select a thinking style");
+
+      return;
+    }
+
     if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -45,10 +60,9 @@ class _OnboardingscreenState extends State<Onboardingscreen> {
       return;
     }
 
-    // Last page — submit onboarding data before navigating forward
+    // Last page — submit
     await _submitOnboarding();
   }
-
   Future<void> _submitOnboarding() async {
     final currentUser = SessionManager.instance.getUser();
 
@@ -61,7 +75,7 @@ class _OnboardingscreenState extends State<Onboardingscreen> {
     }
 
     if (_selectedInterests.isEmpty) {
-      _showSnackbar("Error", "Please select at least one interest", isError: true);
+      SnackbarService.error("Please select at least one interest");
       return;
     }
 
@@ -86,25 +100,14 @@ class _OnboardingscreenState extends State<Onboardingscreen> {
 
       // Update session with latest user data (includes onboarding_completed = true)
       await SessionManager.instance.saveUser(result.user!);
+      SnackbarService.success(result.message);
 
-      _showSnackbar("Success", result.message, isError: false);
       AppNavigator.pushAndClear(AppRoutes.welcome);
     } else {
       print("❌ [Onboardingscreen] Onboarding failed: ${result.message}");
-      _showSnackbar("Error", result.message, isError: true);
+      SnackbarService.error(result.message);
     }
   }
-
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("$title: $message"),
-        backgroundColor: isError ? Colors.redAccent : Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final double horizontalPadding = AppSize.widthPercent(0.05);
@@ -117,6 +120,7 @@ class _OnboardingscreenState extends State<Onboardingscreen> {
           Positioned.fill(
             child: PageView(
               controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(), // swipe band
               onPageChanged: (index) {
                 setState(() {
                   _currentPage = index;

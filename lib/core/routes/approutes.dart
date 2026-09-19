@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:guyline/core/routes/appbinding.dart';
 import 'package:guyline/presentation/authsection/changepassword.dart';
 import 'package:guyline/presentation/authsection/forgetpassword.dart';
 import 'package:guyline/presentation/authsection/loginscreen.dart';
@@ -10,13 +9,20 @@ import 'package:guyline/presentation/authsection/terms_condition.dart';
 import 'package:guyline/presentation/authsection/verify.dart';
 import 'package:guyline/presentation/bottomnavigationsection/bottomnavigation.dart';
 import 'package:guyline/presentation/bottomnavigationsection/historysection/historyscreen.dart';
+import 'package:guyline/presentation/bottomnavigationsection/homesection/helpmedecide.dart';
 import 'package:guyline/presentation/bottomnavigationsection/homesection/chatbot.dart';
 import 'package:guyline/presentation/bottomnavigationsection/homesection/conservation.dart';
 import 'package:guyline/presentation/bottomnavigationsection/homesection/homescreen.dart';
+import 'package:guyline/presentation/bottomnavigationsection/homesection/makeaplan.dart';
+import 'package:guyline/presentation/bottomnavigationsection/homesection/notification.dart';
+import 'package:guyline/presentation/bottomnavigationsection/profilesection/aboutguyline.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/accountsetting.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/editprofile.dart';
+import 'package:guyline/presentation/bottomnavigationsection/profilesection/intrectionprefrence.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/profilescreen.dart';
+import 'package:guyline/presentation/bottomnavigationsection/profilesection/rateapp.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/subcryption.dart';
+import 'package:guyline/presentation/bottomnavigationsection/profilesection/supportcenter.dart';
 import 'package:guyline/presentation/bottomnavigationsection/profilesection/updatepassword.dart';
 import 'package:guyline/presentation/onboardingsection/onboardingscreen.dart';
 import 'package:guyline/presentation/otherscreens/splashscreen.dart';
@@ -24,6 +30,7 @@ import 'package:guyline/presentation/otherscreens/welcomescreen.dart';
 
 import '../../data/controllers/changepasswordcontroller.dart';
 import '../../data/controllers/forgetpasswordcontroller.dart';
+import '../../data/controllers/logincontroller.dart';
 import '../../data/controllers/verifypasswordcontroller.dart';
 
 
@@ -51,6 +58,16 @@ class AppRoutes {
   static const String success = "/success";
   static const String subcryption = "/subcryption";
   static const String bottomnavigation = "/bottomnavigation";
+  static const String helpmedecide = "/helpmedecide";
+  static const String makeaplan = "/makeaplan";
+  static const String notification = "/notification";
+  static const String intrectionprefrence = "/intrectionprefrence";
+  static const String rateapp = "/rateapp";
+  static const String support = "/support";
+  static const String aboutguyline = "/aboutguyline";
+
+
+
 
 
 
@@ -78,6 +95,9 @@ class AppRoutes {
     GetPage(
       name: login,
       page: () => const Loginscreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<LoginController>(() => LoginController());
+      }),
       transition: Transition.rightToLeft,
     ),
     GetPage(
@@ -165,6 +185,37 @@ class AppRoutes {
       page: () => const Subcryption(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: helpmedecide,
+      page: () => const Helpmedecide(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: notification,
+      page: () => const Notification(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: intrectionprefrence,
+      page: () => const Intrectionprefrence(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: rateapp,
+      page: () => const Rateapp(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: support,
+      page: () => const Supportcenter(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: aboutguyline,
+      page: () => const Aboutguyline(),
+      transition: Transition.rightToLeft,
     ),
   ];
 }

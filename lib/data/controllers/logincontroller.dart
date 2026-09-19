@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:guyline/data/controllers/profilecontroller.dart';
+import 'package:guyline/presentation/Widgets/snackbar.dart';
 import '../services/authservice.dart';
 import '../services/sessionmanager.dart';
 import '../../presentation/Widgets/AppNavigator.dart';
@@ -37,12 +39,12 @@ class LoginController extends GetxController {
 
     // ---- Validation ----
     if (email.isEmpty || password.isEmpty) {
-      _showSnackbar("Error", "Please fill all fields", isError: true);
+SnackbarService.error("Please fill all fields");
       return;
     }
 
     if (!GetUtils.isEmail(email)) {
-      _showSnackbar("Error", "Please enter a valid email address", isError: true);
+      SnackbarService.error("Please enter a valid email address");
       return;
     }
 
@@ -62,30 +64,22 @@ class LoginController extends GetxController {
 
       // Save session locally
       await SessionManager.instance.saveUser(result.user!);
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().refreshFromSession();
+      } else {
+        Get.put(ProfileController(), permanent: true).refreshFromSession();
+      }
 
-      _showSnackbar("Success", result.message, isError: false);
+      SnackbarService.success(result.message);
 
-      AppNavigator.pushRight(AppRoutes.bottomnavigation);
+      AppNavigator.pushAndClear(AppRoutes.bottomnavigation);
     } else {
       print("❌ [LoginController] Login failed: ${result.message}");
-      _showSnackbar("Login Failed", result.message, isError: true);
+      SnackbarService.error(result.message);
     }
   }
-
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isError ? Colors.redAccent : Colors.green,
-      colorText: Colors.white,
-    );
-  }
-
   @override
   void onClose() {
-    usernameController.dispose();
-    passwordController.dispose();
     super.onClose();
   }
 }

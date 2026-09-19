@@ -1,12 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/theme/appcolors.dart';
 import 'package:guyline/presentation/Widgets/Button.dart';
 import 'package:guyline/presentation/widgets/MediaqueryHelperfile.dart';
 import 'package:guyline/presentation/Widgets/appbackground.dart';
 import '../../../data/controllers/profilecontroller.dart';
-import 'dart:convert';
 
 class Editprofile extends StatefulWidget {
   const Editprofile({super.key});
@@ -18,82 +19,86 @@ class Editprofile extends StatefulWidget {
 class _EditprofileState extends State<Editprofile> {
   final controller = Get.isRegistered<ProfileController>()
       ? Get.find<ProfileController>()
-      : Get.put(ProfileController());
+      : Get.put(ProfileController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
     final double horizontalPadding = AppSize.widthPercent(0.055);
-    final double bannerHeight = AppSize.heightPercent(0.24);
-    final double avatarSize = AppSize.widthPercent(0.26);
+    final double bannerHeight = AppSize.heightPercent(0.22);
+    final double avatarSize = AppSize.widthPercent(0.28);
 
-    return AppBackground(
-      padding: EdgeInsets.zero,
-      child: SafeArea(
-        bottom: false,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// ---------------------------------------------------------
-                /// 1. SIMPLE ROUNDED BANNER + BOTTOM-LEFT AVATAR (CAMERA)
-                /// ---------------------------------------------------------
-                _EditProfileHeader(
-                  controller: controller,
-                  bannerHeight: bannerHeight,
-                  avatarSize: avatarSize,
-                  horizontalPadding: horizontalPadding,
-                ),
-
-                SizedBox(height: AppSize.heightPercent(0.02)),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: Text(
-                    "Change Profile Picture",
-                    style: TextStyle(
-                      fontSize: AppSize.height * 0.015,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "pr",
-                      color: AppColors.textcolor1,
+    return WillPopScope(
+      onWillPop: () async {
+        controller.discardUnsavedChanges();
+        return true;
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
+        child: AppBackground(
+          padding: EdgeInsets.zero,
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _EditProfileHeader(
+                      controller: controller,
+                      bannerHeight: bannerHeight,
+                      avatarSize: avatarSize,
+                      horizontalPadding: horizontalPadding,
                     ),
-                  ),
-                ),
-
-                SizedBox(height: AppSize.heightPercent(0.035)),
-
-                /// ---------------------------------------------------------
-                /// 2. EDITABLE INPUT FIELDS (USERNAME & EMAIL)
-                /// ---------------------------------------------------------
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: Column(
-                    children: [
-                      _EditInputField(
-                        label: "Username",
-                        controller: controller.nameController,
-                        icon: Icons.edit_rounded,
+                    SizedBox(height: AppSize.heightPercent(0.02)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                      child: Text(
+                        "Change Profile Picture",
+                        style: TextStyle(
+                          fontSize: AppSize.height * 0.015,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "pr",
+                          color: AppColors.textcolor1,
+                        ),
                       ),
-                      SizedBox(height: AppSize.heightPercent(0.012)),
-                      _EditInputField(
-                        label: "Email Address",
-                        controller: controller.emailController,
-                        icon: Icons.edit_rounded,
-                        keyboardType: TextInputType.emailAddress,
+                    ),
+                    SizedBox(height: AppSize.heightPercent(0.035)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                      child: Column(
+                        children: [
+                          _EditInputField(
+                            label: "Username",
+                            controller: controller.nameController,
+                            icon: Icons.edit_rounded,
+                          ),
+                          SizedBox(height: AppSize.heightPercent(0.012)),
+                          _EditInputField(
+                            label: "Email Address",
+                            controller: controller.emailController,
+                            icon: Icons.lock_outline_rounded,
+                            keyboardType: TextInputType.emailAddress,
+                            readOnly: true,
+                          ),
+                          SizedBox(height: AppSize.heightPercent(0.08)),
+                          Obx(
+                                () => CustomButton(
+                              title: controller.isLoading.value ? "Saving..." : "Save Changes",
+                              onTap: controller.isLoading.value ? null : controller.saveProfileChanges,
+                            ),
+                          ),
+                          SizedBox(height: AppSize.heightPercent(0.03)),
+                        ],
                       ),
-
-                      SizedBox(height: AppSize.heightPercent(0.08)),
-                      Obx(() => CustomButton(
-                        title: controller.isLoading.value ? "Saving..." : "Save Changes",
-                        onTap: controller.isLoading.value ? null : controller.saveProfileChanges,
-                      )),
-
-                      SizedBox(height: AppSize.heightPercent(0.03)),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -102,9 +107,6 @@ class _EditprofileState extends State<Editprofile> {
   }
 }
 
-/// -----------------------------------------------------------------------
-/// SIMPLE BANNER (rounded bottom corners) + BOTTOM-LEFT AVATAR WITH CAMERA
-/// -----------------------------------------------------------------------
 class _EditProfileHeader extends StatelessWidget {
   final ProfileController controller;
   final double bannerHeight;
@@ -120,82 +122,99 @@ class _EditProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double headerHeight = (bannerHeight - (avatarSize * 0.15)) + avatarSize + 20;
+
     return SizedBox(
-      height: bannerHeight + (avatarSize * 0.5),
+      height: headerHeight,
+      width: double.infinity,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          /// Simple rounded banner box with camera edit button
-          ClipRRect(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(AppSize.widthPercent(0.09)),
-              bottomRight: Radius.circular(AppSize.widthPercent(0.09)),
+          // Banner
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: bannerHeight + (avatarSize * 0.5),
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(AppSize.widthPercent(0.09)),
+                bottomRight: Radius.circular(AppSize.widthPercent(0.09)),
+              ),
+              child: Obx(() {
+                final version = controller.avatarVersion.value;
+                return KeyedSubtree(
+                  key: ValueKey('edit_banner_$version'),
+                  child: _buildBanner(),
+                );
+              }),
             ),
+          ),
+
+          // Avatar + Camera
+          Positioned(
+            top: bannerHeight - (avatarSize * 0.15),
+            left: horizontalPadding,
             child: SizedBox(
-              height: bannerHeight,
-              width: double.infinity,
+              height: avatarSize + 20,
+              width: avatarSize + 20,
               child: Stack(
-                fit: StackFit.expand,
+                clipBehavior: Clip.none,
                 children: [
-                  Obx(() {
-                    final bannerPath = controller.selectedBannerPath.value;
-                    if (bannerPath != null && bannerPath.isNotEmpty) {
-                      return Image.file(
-                        File(bannerPath),
-                        fit: BoxFit.cover,
-                      );
-                    }
-                    return Image.asset(
-                      controller.defaultBannerImage,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primary1.withOpacity(0.55),
-                              AppColors.primary2.withOpacity(0.55),
-                            ],
+                  GestureDetector(
+                    onTap: controller.changeProfilePicture,
+                    child: Container(
+                      height: avatarSize,
+                      width: avatarSize,
+                      padding: const EdgeInsets.all(3.5),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1B1B1B),
+                        border: Border.all(color: AppColors.primary1.withOpacity(0.5), width: 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.45),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
-                        ),
-                      ),
-                    );
-                  }),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.55),
-                          Colors.black.withOpacity(0.0),
                         ],
-                        stops: const [0.0, 0.6],
+                      ),
+                      child: ClipOval(
+                        child: Obx(() {
+                          final version = controller.avatarVersion.value;
+                          return KeyedSubtree(
+                            key: ValueKey('edit_avatar_$version'),
+                            child: _buildAvatarImage(),
+                          );
+                        }),
                       ),
                     ),
                   ),
 
-                  /// Banner Camera Edit Button
+                  // Camera button
                   Positioned(
-                    top: AppSize.heightPercent(0.015),
-                    right: AppSize.widthPercent(0.07),
-                    child: GestureDetector(
-                      onTap: controller.changeBannerImage,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1,
+                    bottom: AppSize.height*0.03,
+                    right: AppSize.height*0.02,
+                    child: Material(
+                      color: AppColors.primary1,
+                      shape: const CircleBorder(),
+                      elevation: 4,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: controller.changeProfilePicture,
+                        child: Container(
+                          width: AppSize.widthPercent(0.09),
+                          height: AppSize.widthPercent(0.09),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFF1B1B1B), width: 2),
                           ),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt_rounded,
-                          color: Colors.white,
-                          size: 18,
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            color: Colors.white,
+                            size: AppSize.widthPercent(0.04),
+                          ),
                         ),
                       ),
                     ),
@@ -204,119 +223,91 @@ class _EditProfileHeader extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          /// Floating avatar — bottom-left of the banner, with left padding
-          /// + camera overlay badge to trigger picking a new photo
-          Positioned(
-            top: bannerHeight - (avatarSize * 0.5),
-            left:AppSize.height*0.04,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                GestureDetector(
-                  onTap: controller.changeProfilePicture,
-                  child: Container(
-                    height: avatarSize,
-                    width: avatarSize,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary2,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Obx(() {
-                            // 1. Local newly picked
-                            final avatarPath = controller.selectedAvatarPath.value;
-                            if (avatarPath != null && avatarPath.isNotEmpty) {
-                              return Image.file(
-                                File(avatarPath),
-                                fit: BoxFit.cover,
-                              );
-                            }
-
-                            // 2. Saved base64 from Session
-                            final base64Image = controller.profileImageBase64.value;
-                            if (base64Image != null && base64Image.isNotEmpty) {
-                              try {
-                                final pureBase64 = base64Image.contains(',')
-                                    ? base64Image.split(',').last
-                                    : base64Image;
-                                final bytes = base64Decode(pureBase64);
-                                return Image.memory(
-                                  bytes,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _defaultAvatar(avatarSize);
-                                  },
-                                );
-                              } catch (e) {
-                                return _defaultAvatar(avatarSize);
-                              }
-                            }
-
-                            // 3. Default
-                            return _defaultAvatar(avatarSize);
-                          }),
-
-                          // Dark overlay for edit cue
-                          Container(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                /// Camera Icon centered over Avatar
-                GestureDetector(
-                  onTap: controller.changeProfilePicture,
-                  child: Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.65),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
+  Widget _buildBanner() {
+    final provider = controller.avatarImageProvider;
+    if (provider != null) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Image(
+            image: provider,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _defaultBanner(),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.45),
+                ],
+              ),
             ),
           ),
         ],
+      );
+    }
+    return _defaultBanner();
+  }
+
+  Widget _defaultBanner() {
+    return Container(
+      color: AppColors.primary2.withOpacity(0.12),
+      child: Center(
+        child: Icon(
+          Icons.person_outline_rounded,
+          size: AppSize.widthPercent(0.28),
+          color: AppColors.primary1.withOpacity(0.35),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarImage() {
+    final provider = controller.avatarImageProvider;
+    if (provider != null) {
+      return Image(
+        image: provider,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _defaultAvatar(),
+      );
+    }
+    return _defaultAvatar();
+  }
+
+  Widget _defaultAvatar() {
+    return Container(
+      color: const Color(0xFF1B1B1B),
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.person_rounded,
+        size: avatarSize * 0.5,
+        color: AppColors.primary1.withOpacity(0.85),
       ),
     );
   }
 }
 
-/// -----------------------------------------------------------------------
-/// REUSABLE EDIT INPUT FIELD
-/// -----------------------------------------------------------------------
 class _EditInputField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final IconData icon;
   final TextInputType keyboardType;
+  final bool readOnly;
 
   const _EditInputField({
     required this.label,
     required this.controller,
     required this.icon,
     this.keyboardType = TextInputType.text,
+    this.readOnly = false,
   });
 
   @override
@@ -328,16 +319,15 @@ class _EditInputField extends StatelessWidget {
         vertical: AppSize.heightPercent(0.008),
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF1B1B1B),
+        color: AppColors.primary2.withOpacity(0.1),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.05),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
       ),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        readOnly: readOnly,
+        enableInteractiveSelection: !readOnly,
         style: TextStyle(
           color: AppColors.textcolor1,
           fontFamily: "pm",
@@ -352,27 +342,9 @@ class _EditInputField extends StatelessWidget {
             fontFamily: "pr",
             fontSize: AppSize.widthPercent(0.033),
           ),
-          suffixIcon: Icon(
-            icon,
-            color: AppColors.primary1,
-            size: AppSize.widthPercent(0.048),
-          ),
+          suffixIcon: Icon(icon, color: AppColors.primary1, size: AppSize.widthPercent(0.048)),
         ),
       ),
     );
   }
-}
-Widget _defaultAvatar(double size) {
-  return Image.asset(
-    "assets/images/profile.png",
-    fit: BoxFit.cover,
-    errorBuilder: (context, error, stackTrace) => Container(
-      color: AppColors.primary1.withOpacity(0.3),
-      child: Icon(
-        Icons.person,
-        color: AppColors.primary1,
-        size: size * 0.5,
-      ),
-    ),
-  );
 }

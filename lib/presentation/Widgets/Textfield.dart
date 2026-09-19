@@ -105,7 +105,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 fontFamily: "pr",
               ),
               decoration: InputDecoration(
-                hintText: widget.isSearch ? 'custom_text_field_search_hint'.tr : widget.hintText,
+                hintText: widget.isSearch ? 'search anything' : widget.hintText,
                 hintStyle: TextStyle(
                   fontFamily: "pr",
                   color: AppColors.textcolor2.withOpacity(0.6), // Dynamic Hint Color

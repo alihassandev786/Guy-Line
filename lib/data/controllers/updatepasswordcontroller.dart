@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/routes/approutes.dart';
 import 'package:guyline/presentation/Widgets/AppNavigator.dart';
+import '../../presentation/Widgets/snackbar.dart';
 import '../services/authservice.dart';
 import '../services/sessionmanager.dart';
 
@@ -36,45 +37,33 @@ class UpdatePasswordController extends GetxController {
 
     // ---------- Validation ----------
     if (currentPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
-      _showSnackbar("Error", "Please fill all fields", isError: true);
+      SnackbarService.error("Please fill all fields");
       return;
     }
 
     if (newPass.length < 6) {
-      _showSnackbar(
-        "Weak Password",
-        "New password must be at least 6 characters",
-        isError: true,
-      );
+      SnackbarService.error("New password must be at least 6 characters");
+
       return;
     }
 
     if (newPass != confirmPass) {
-      _showSnackbar(
-        "Mismatch",
-        "New password and confirm password do not match",
-        isError: true,
-      );
+      SnackbarService.error("New password and confirm password do not match");
+
       return;
     }
 
     if (currentPass == newPass) {
-      _showSnackbar(
-        "Error",
-        "New password cannot be same as current password",
-        isError: true,
-      );
+      SnackbarService.error("New password cannot be same as current password");
+
       return;
     }
 
     // ---------- Get current user id ----------
     final user = SessionManager.instance.getUser();
     if (user == null) {
-      _showSnackbar(
-        "Error",
-        "User session not found. Please login again.",
-        isError: true,
-      );
+      SnackbarService.error("User session not found. Please login again.");
+
       return;
     }
 
@@ -98,25 +87,14 @@ class UpdatePasswordController extends GetxController {
       newPasswordController.clear();
       confirmPasswordController.clear();
 
-      _showSnackbar("Success", result.message, isError: false);
+      SnackbarService.success(result.message);
 
       // Optional: go back or to success screen
       AppNavigator.pushRight(AppRoutes.bottomnavigation);
     } else {
       print("❌ [UpdatePasswordController] Failed: ${result.message}");
-      _showSnackbar("Failed", result.message, isError: true);
+      SnackbarService.error(result.message);
     }
-  }
-
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isError ? Colors.redAccent : Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-    );
   }
 
   @override

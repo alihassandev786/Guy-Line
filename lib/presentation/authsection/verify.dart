@@ -12,7 +12,6 @@ import '../Widgets/appbackground.dart';
 
 class Verify extends StatefulWidget {
   const Verify({super.key});
-
   @override
   State<Verify> createState() => _VerifyState();
 }

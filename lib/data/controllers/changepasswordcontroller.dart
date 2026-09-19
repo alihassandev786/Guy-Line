@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/routes/approutes.dart';
 import 'package:guyline/presentation/Widgets/AppNavigator.dart';
+import 'package:guyline/presentation/Widgets/snackbar.dart';
 import '../services/authservice.dart';
 import '../services/passwordresetsession.dart';
 
@@ -19,17 +20,18 @@ class ChangePasswordController extends GetxController {
 
     // ---- Validation ----
     if (newPass.isEmpty || confirmPass.isEmpty) {
-      _showSnackbar("Error", "Please fill all fields", isError: true);
+      SnackbarService.error("Please fill all fields");
       return;
     }
 
     if (newPass.length < 6) {
-      _showSnackbar("Weak Password", "Password must be at least 6 characters", isError: true);
+      SnackbarService.error("Password must be at least 6 characters");
       return;
     }
 
     if (newPass != confirmPass) {
-      _showSnackbar("Mismatch", "New password and confirm password do not match", isError: true);
+      SnackbarService.error("New password and confirm password do not match");
+
       return;
     }
 
@@ -37,11 +39,10 @@ class ChangePasswordController extends GetxController {
     final String? otp = PasswordResetSession.otp;
 
     if (email == null || otp == null) {
-      _showSnackbar(
-        "Error",
+      SnackbarService.error(
         "Session expired. Please restart the forgot password process.",
-        isError: true,
       );
+
       return;
     }
 
@@ -60,7 +61,7 @@ class ChangePasswordController extends GetxController {
     if (result.success) {
       print(
         "✅ [ChangePasswordController] Password reset successful. "
-            "user_id: ${result.userId}",
+        "user_id: ${result.userId}",
       );
 
       // Keyboard close before changing screen
@@ -69,33 +70,16 @@ class ChangePasswordController extends GetxController {
       // Clear temporary reset data
       PasswordResetSession.clear();
 
-      _showSnackbar(
-        "Success",
-        result.message,
-        isError: false,
-      );
+      SnackbarService.success(result.message);
 
       AppNavigator.pushRight(AppRoutes.success);
     } else {
       print("❌ [ChangePasswordController] Reset failed: ${result.message}");
-      _showSnackbar("Error", result.message, isError: true);
+      SnackbarService.error(result.message);
     }
   }
-
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isError ? Colors.redAccent : Colors.green,
-      colorText: Colors.white,
-    );
-  }
-
   @override
   void onClose() {
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
     super.onClose();
   }
 }
@@ -104,7 +88,7 @@ class ChangePasswordBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<ChangePasswordController>(
-          () => ChangePasswordController(),
+      () => ChangePasswordController(),
       fenix: true,
     );
   }

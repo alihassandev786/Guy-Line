@@ -9,7 +9,6 @@ import 'package:guyline/presentation/Widgets/appbackground.dart';
 class LegalContentScreen extends StatelessWidget {
   final String title;
   final List<String> paragraphs;
-
   const LegalContentScreen({
     super.key,
     required this.title,

@@ -18,12 +18,8 @@ class Loginscreen extends StatefulWidget {
 }
 
 class _LoginscreenState extends State<Loginscreen> {
-  late final LoginController controller;
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(LoginController());
-  }
+  final LoginController controller = Get.put(LoginController());
+
   Widget build(BuildContext context) {
     final double horizontalPadding = AppSize.widthPercent(0.06);
 
@@ -31,7 +27,6 @@ class _LoginscreenState extends State<Loginscreen> {
       padding: EdgeInsets.zero,
       child: SafeArea(
         child: SingleChildScrollView(
-          
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Column(
@@ -83,7 +78,7 @@ class _LoginscreenState extends State<Loginscreen> {
                 SizedBox(height: AppSize.heightPercent(0.01)),
 
                 Obx(
-                      () => CustomTextField(
+                  () => CustomTextField(
                     controller: controller.passwordController,
                     hintText: "Password",
                     obscureText: controller.isObscurePassword.value,
@@ -113,7 +108,7 @@ class _LoginscreenState extends State<Loginscreen> {
                       child: Row(
                         children: [
                           Obx(
-                                () => Container(
+                            () => Container(
                               height: AppSize.widthPercent(0.055),
                               width: AppSize.widthPercent(0.055),
                               decoration: BoxDecoration(
@@ -128,10 +123,10 @@ class _LoginscreenState extends State<Loginscreen> {
                               ),
                               child: controller.rememberMe.value
                                   ? Icon(
-                                Icons.check,
-                                size: AppSize.widthPercent(0.04),
-                                color: Colors.black,
-                              )
+                                      Icons.check,
+                                      size: AppSize.widthPercent(0.04),
+                                      color: Colors.black,
+                                    )
                                   : null,
                             ),
                           ),
@@ -167,8 +162,10 @@ class _LoginscreenState extends State<Loginscreen> {
                 SizedBox(height: AppSize.heightPercent(0.06)),
 
                 Obx(
-                      () => CustomButton(
-                    title: controller.isLoading.value ? "Please wait..." : "Log In",
+                  () => CustomButton(
+                    title: controller.isLoading.value
+                        ? "Please wait..."
+                        : "Log In",
                     onTap: controller.isLoading.value ? null : controller.login,
                   ),
                 ),
@@ -215,25 +212,27 @@ class _LoginscreenState extends State<Loginscreen> {
                     _buildSocialButton(
                       color: const Color(0xFF1877F2),
                       iconData: Icons.facebook,
+                      image: "",
                       iconColor: Colors.white,
                       onTap: () {},
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
+                       image: "assets/images/twitter.png",
                       color: const Color(0xFF1DA1F2),
-                      iconData: Icons.flutter_dash,
                       iconColor: Colors.white,
                       onTap: () {},
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
                       color: Colors.white,
-                      isGoogle: true,
+                      image: "assets/images/google.png",
                       onTap: () {},
                     ),
                     SizedBox(width: AppSize.widthPercent(0.04)),
                     _buildSocialButton(
                       color: const Color(0xFF161616),
+                      image: "",
                       iconData: Icons.apple,
                       iconColor: Colors.white,
                       onTap: () {},
@@ -286,8 +285,8 @@ class _LoginscreenState extends State<Loginscreen> {
     required Color color,
     IconData? iconData,
     Color iconColor = Colors.white,
-    bool isGoogle = false,
     VoidCallback? onTap,
+    required String image,
   }) {
     final double buttonSize = AppSize.widthPercent(0.12);
 
@@ -307,16 +306,12 @@ class _LoginscreenState extends State<Loginscreen> {
             ),
           ],
         ),
-        child: Center(
-          child: isGoogle
-              ? CustomPaint(
-            size: Size(buttonSize * 0.45, buttonSize * 0.45),
-            painter: _GoogleLogoPainter(),
-          )
-              : Icon(
-            iconData,
-            color: iconColor,
-            size: buttonSize * 0.55,
+        child: Padding(
+          padding:  EdgeInsets.all(AppSize.height*0.014),
+          child: Center(
+            child: image.isNotEmpty
+                ? Image.asset(image)
+                : Icon(iconData, color: iconColor, size: buttonSize * 0.55),
           ),
         ),
       ),

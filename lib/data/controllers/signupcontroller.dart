@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../presentation/Widgets/snackbar.dart';
 import '../services/authservice.dart';
 import '../services/sessionmanager.dart';
 import '../../presentation/Widgets/AppNavigator.dart';
@@ -38,27 +39,50 @@ class SignupController extends GetxController {
 
     // ---- Validation ----
     if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      _showSnackbar("Error", "Please fill all fields", isError: true);
+      SnackbarService.error("Please fill all fields");
       return;
     }
 
     if (!GetUtils.isEmail(email)) {
-      _showSnackbar("Error", "Please enter a valid email address", isError: true);
+      SnackbarService.error("Please enter a valid email address");
+      return;
+    }
+// Professional password rules
+    if (password.length < 8) {
+      SnackbarService.error("Password must be at least 8 characters");
+
       return;
     }
 
-    if (password.length < 6) {
-      _showSnackbar("Error", "Password must be at least 6 characters", isError: true);
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      SnackbarService.error("Password must contain at least one uppercase letter");
+
       return;
     }
 
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      SnackbarService.error("Password must contain at least one lowercase letter");
+      return;
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(password)) {
+      SnackbarService.error("Password must contain at least one number");
+
+      return;
+    }
+
+    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(password)) {
+      SnackbarService.error("Password must contain at least one special character (!@#\$%^&*)");
+
+      return;
+    }
     if (password != confirmPassword) {
-      _showSnackbar("Error", "Passwords do not match", isError: true);
+      SnackbarService.error("Passwords do not match");
       return;
     }
 
     if (!isAgreed.value) {
-      _showSnackbar("Warning", "Please agree to terms & conditions", isError: false);
+      SnackbarService.error("Please agree to terms & conditions");
       return;
     }
 
@@ -71,7 +95,6 @@ class SignupController extends GetxController {
       email: email,
       password: password,
     );
-
     isLoading.value = false;
 
     if (result.success && result.user != null) {
@@ -80,23 +103,13 @@ class SignupController extends GetxController {
       // Save session locally
       await SessionManager.instance.saveUser(result.user!);
 
-      _showSnackbar("Success", result.message, isError: false);
+      SnackbarService.success(result.message);
 
       AppNavigator.pushRight(AppRoutes.bottomnavigation);
     } else {
       print("❌ [SignupController] Signup failed: ${result.message}");
-      _showSnackbar("Signup Failed", result.message, isError: true);
+      SnackbarService.error(result.message);
     }
-  }
-
-  void _showSnackbar(String title, String message, {required bool isError}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: isError ? Colors.redAccent : Colors.green,
-      colorText: Colors.white,
-    );
   }
 
   @override

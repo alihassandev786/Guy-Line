@@ -74,7 +74,7 @@ class ImagePickerBottomSheet {
                 ),
               ],
             ),
-            SizedBox(height: AppSize.height * 0.02),
+            SizedBox(height: AppSize.height * 0.05),
           ],
         ),
       ),

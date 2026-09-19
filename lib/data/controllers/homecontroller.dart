@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:guyline/core/routes/approutes.dart';
 import 'package:guyline/presentation/Widgets/AppNavigator.dart';
-import 'package:guyline/presentation/Widgets/MediaqueryHelperfile.dart';
-
+import 'package:guyline/data/services/historyservice.dart';
+import 'conservationcontroller.dart';
 class CategoryItem {
   final String title;
   final IconData icon;
@@ -17,16 +17,27 @@ class CategoryItem {
 }
 
 class RecentItem {
+  final int conversationId;
   final String title;
   final String subtitle;
+  final String? category;
 
   RecentItem({
+    required this.conversationId,
     required this.title,
     required this.subtitle,
+    this.category,
   });
 }
 
 class HomeController extends GetxController {
+  final HistoryService _historyService = HistoryService();
+
+  ConversationController get _conversationController =>
+      Get.isRegistered<ConversationController>()
+          ? Get.find<ConversationController>()
+          : Get.put(ConversationController());
+
   final RxList<CategoryItem> categories = <CategoryItem>[
     CategoryItem(
       title: "Relationship",
@@ -70,26 +81,79 @@ class HomeController extends GetxController {
     ),
   ].obs;
 
-  final RxList<RecentItem> recentItems = <RecentItem>[
-    RecentItem(
-      title: "Handling the promotion..",
-      subtitle: "Work . Yesterday",
-    ),
-    RecentItem(
-      title: "Budgeting for the house..",
-      subtitle: "Money . 3 days ago",
-    ),
-  ].obs;
+  /// Real recent chats from History API (not hardcoded)
+  final RxList<RecentItem> recentItems = <RecentItem>[].obs;
+  final isLoadingRecent = false.obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    loadRecentConversations();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    loadRecentConversations();
+  }
+
+  /// Load last few conversations from /api/history
+  Future<void> loadRecentConversations() async {
+    isLoadingRecent.value = true;
+    try {
+      final result = await _historyService.getHistory();
+      if (result.success && result.conversations.isNotEmpty) {
+        // Take latest 5
+        final items = result.conversations.take(5).map((c) {
+          final cat = c.category ?? "";
+          final time = c.timeAgo ?? "";
+          final subtitle = [
+            if (cat.isNotEmpty) cat,
+            if (time.isNotEmpty) time,
+          ].join(" · ");
+
+          return RecentItem(
+            conversationId: c.id,
+            title: (c.title != null && c.title!.isNotEmpty)
+                ? c.title!
+                : (cat.isNotEmpty ? cat : "Conversation"),
+            subtitle: subtitle.isNotEmpty ? subtitle : "Recent chat",
+            category: c.category,
+          );
+        }).toList();
+        recentItems.assignAll(items);
+      } else {
+        recentItems.clear();
+      }
+    } catch (e) {
+      print("❌ [HomeController] Failed to load recent: $e");
+      recentItems.clear();
+    } finally {
+      isLoadingRecent.value = false;
+    }
+  }
+
+  /// "Start Talking" — chatbot, no category topic
   void startTalking() {
+    _conversationController.startNewConversation();
     AppNavigator.pushRight(AppRoutes.chatbot);
   }
 
+  /// Category card — direct Conversation with that topic
   void onCategoryTap(String title) {
-    // TODO: Handle Category Tap
+    _conversationController.startNewConversation(withCategory: title);
+    AppNavigator.pushRight(AppRoutes.conservation);
   }
 
+  /// Recent card — open real conversation (same as History tile)
   void onRecentItemTap(RecentItem item) {
-    // TODO: Open Recent History Detail
+    final conv = _conversationController;
+    conv.loadExistingConversation(
+      item.conversationId,
+      title: item.title,
+      category: item.category,
+    ).then((_) {
+      Get.toNamed(AppRoutes.conservation);
+    });
   }
 }
